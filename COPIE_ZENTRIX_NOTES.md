@@ -1,0 +1,187 @@
+# Copie des sources Zentrix Academy
+
+Cette arborescence contient une copie de l’interface Zentrix/TESS destinée à `tess_web_app`.
+
+Les fichiers source sous `src/` ont reçu un commentaire d’origine en tête de fichier. Les images, polices, JSON et fichiers de configuration restent inchangés lorsque leur format n’autorise pas les commentaires valides ; ils sont documentés ci-dessous.
+
+## Contenu copié
+
+- `src/components/ai/` : composants IA desktop/mobile, audio, voix, markdown, pièces jointes, activité et skeletons.
+- `src/components/` : composants d’interface, navigation, éditeur, authentification et layout.
+- `src/pages/` : pages publiques, tableau de bord, cours, questionnaires, documents, administration et authentification.
+- `src/lib/` et `src/hooks/` : client API, types backend, traduction, thème, contexte de page et suivi.
+- `public/` : icônes, images et ressources statiques.
+- fichiers racine : point d’entrée Vite, dépendances, configuration TypeScript, Vite et déploiement.
+
+## Fichiers et rôle
+
+- `.env.example` — Ressource ou configuration copiée depuis eduplatform.
+- `components.json` — Ressource ou configuration copiée depuis eduplatform.
+- `index.html` — Ressource ou configuration copiée depuis eduplatform.
+- `package-lock.json` — Ressource ou configuration copiée depuis eduplatform.
+- `package.json` — Ressource ou configuration copiée depuis eduplatform.
+- `public/affiche_ai.avif` — Ressource statique utilisée par l’interface.
+- `public/ai_icon.jpg` — Ressource statique utilisée par l’interface.
+- `public/ai_icon.webp` — Ressource statique utilisée par l’interface.
+- `public/bibliotheque.jpeg` — Ressource statique utilisée par l’interface.
+- `public/cours.jpg` — Ressource statique utilisée par l’interface.
+- `public/dashboard-hero.jpg` — Ressource statique utilisée par l’interface.
+- `public/dashboard-sidebar.jpg` — Ressource statique utilisée par l’interface.
+- `public/etudiant ordinateur.avif` — Ressource statique utilisée par l’interface.
+- `public/etudiant-data-science.webp` — Ressource statique utilisée par l’interface.
+- `public/etudiante.jpg` — Ressource statique utilisée par l’interface.
+- `public/favicon.svg` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/01-hero-learning.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/02-hero-collaboration.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/03-hero-library.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/04-about-online-class.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/04-hero-library-realistic.png` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/05-about-books.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/05-hero-cybersecurity-realistic.png` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/06-about-mobile-access.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/06-hero-tablet-realistic.png` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/07-hero-zentrix-back-view.png` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/07-program-coding.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/08-program-books.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/09-campus-lab.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/10-campus-mentor.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/11-barrier-access.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/12-barrier-laptop.webp` — Ressource statique utilisée par l’interface.
+- `public/generated-landing/13-faq-study.webp` — Ressource statique utilisée par l’interface.
+- `public/google-logo.png` — Ressource statique utilisée par l’interface.
+- `public/hero1.webp` — Ressource statique utilisée par l’interface.
+- `public/opengraph.jpg` — Ressource statique utilisée par l’interface.
+- `public/ordinateur-simulation-visuel-data-science.jpg` — Ressource statique utilisée par l’interface.
+- `public/page-hero-analytics.png` — Ressource statique utilisée par l’interface.
+- `public/page-hero-catalogue.png` — Ressource statique utilisée par l’interface.
+- `public/page-hero-certificates.png` — Ressource statique utilisée par l’interface.
+- `public/page-hero-library.png` — Ressource statique utilisée par l’interface.
+- `public/page-hero-notifications.png` — Ressource statique utilisée par l’interface.
+- `public/page-hero-quizzes.png` — Ressource statique utilisée par l’interface.
+- `public/page-hero-revision.png` — Ressource statique utilisée par l’interface.
+- `public/page-hero-settings.png` — Ressource statique utilisée par l’interface.
+- `public/robots.txt` — Ressource statique utilisée par l’interface.
+- `public/zati/hero-2.avif` — Ressource statique utilisée par l’interface.
+- `public/zentrix.avif` — Ressource statique utilisée par l’interface.
+- `src/App.tsx` — Ressource ou configuration copiée depuis eduplatform.
+- `src/components/admin/RichTextEditor.css` — Composant d’interface partagé.
+- `src/components/admin/RichTextEditor.tsx` — Composant d’interface partagé.
+- `src/components/ai/AIActivity.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/AIMarkdown.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/AIPanelChat.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/AIPhoneChat.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/AttachmentCard.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/ComposerPlusMenu.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/MessageAudioPlayer.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/MobileAssistantShell.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/SkeletonMessage.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/ai/VoiceAIOrb.tsx` — Composant IA TESS pour interface desktop/mobile ou fonctionnalité associée.
+- `src/components/animations/ViewportTransitions.tsx` — Composant d’interface partagé.
+- `src/components/auth/FirstVisitAuthPanel.tsx` — Composant d’interface partagé.
+- `src/components/editor/RichTextEditor.tsx` — Composant d’interface partagé.
+- `src/components/error-boundary.tsx` — Composant d’interface partagé.
+- `src/components/layout/Sidebar.tsx` — Composant d’interface partagé.
+- `src/components/layout/SiteFooter.tsx` — Composant d’interface partagé.
+- `src/components/ui/accordion.tsx` — Composant d’interface partagé.
+- `src/components/ui/alert-dialog.tsx` — Composant d’interface partagé.
+- `src/components/ui/alert.tsx` — Composant d’interface partagé.
+- `src/components/ui/aspect-ratio.tsx` — Composant d’interface partagé.
+- `src/components/ui/avatar.tsx` — Composant d’interface partagé.
+- `src/components/ui/badge.tsx` — Composant d’interface partagé.
+- `src/components/ui/breadcrumb.tsx` — Composant d’interface partagé.
+- `src/components/ui/button-group.tsx` — Composant d’interface partagé.
+- `src/components/ui/button.tsx` — Composant d’interface partagé.
+- `src/components/ui/calendar.tsx` — Composant d’interface partagé.
+- `src/components/ui/card.tsx` — Composant d’interface partagé.
+- `src/components/ui/carousel.tsx` — Composant d’interface partagé.
+- `src/components/ui/chart.tsx` — Composant d’interface partagé.
+- `src/components/ui/checkbox.tsx` — Composant d’interface partagé.
+- `src/components/ui/collapsible.tsx` — Composant d’interface partagé.
+- `src/components/ui/command.tsx` — Composant d’interface partagé.
+- `src/components/ui/confirm-dialog.tsx` — Composant d’interface partagé.
+- `src/components/ui/context-menu.tsx` — Composant d’interface partagé.
+- `src/components/ui/dialog.tsx` — Composant d’interface partagé.
+- `src/components/ui/drawer.tsx` — Composant d’interface partagé.
+- `src/components/ui/dropdown-menu.tsx` — Composant d’interface partagé.
+- `src/components/ui/empty.tsx` — Composant d’interface partagé.
+- `src/components/ui/field.tsx` — Composant d’interface partagé.
+- `src/components/ui/form.tsx` — Composant d’interface partagé.
+- `src/components/ui/hover-card.tsx` — Composant d’interface partagé.
+- `src/components/ui/input-group.tsx` — Composant d’interface partagé.
+- `src/components/ui/input-otp.tsx` — Composant d’interface partagé.
+- `src/components/ui/input.tsx` — Composant d’interface partagé.
+- `src/components/ui/item.tsx` — Composant d’interface partagé.
+- `src/components/ui/kbd.tsx` — Composant d’interface partagé.
+- `src/components/ui/label.tsx` — Composant d’interface partagé.
+- `src/components/ui/menubar.tsx` — Composant d’interface partagé.
+- `src/components/ui/navigation-menu.tsx` — Composant d’interface partagé.
+- `src/components/ui/PageHero.tsx` — Composant d’interface partagé.
+- `src/components/ui/pagination.tsx` — Composant d’interface partagé.
+- `src/components/ui/popover.tsx` — Composant d’interface partagé.
+- `src/components/ui/progress.tsx` — Composant d’interface partagé.
+- `src/components/ui/radio-group.tsx` — Composant d’interface partagé.
+- `src/components/ui/resizable.tsx` — Composant d’interface partagé.
+- `src/components/ui/scroll-area.tsx` — Composant d’interface partagé.
+- `src/components/ui/select.tsx` — Composant d’interface partagé.
+- `src/components/ui/separator.tsx` — Composant d’interface partagé.
+- `src/components/ui/sheet.tsx` — Composant d’interface partagé.
+- `src/components/ui/sidebar.tsx` — Composant d’interface partagé.
+- `src/components/ui/skeleton.tsx` — Composant d’interface partagé.
+- `src/components/ui/slider.tsx` — Composant d’interface partagé.
+- `src/components/ui/sonner.tsx` — Composant d’interface partagé.
+- `src/components/ui/spinner.tsx` — Composant d’interface partagé.
+- `src/components/ui/switch.tsx` — Composant d’interface partagé.
+- `src/components/ui/table.tsx` — Composant d’interface partagé.
+- `src/components/ui/tabs.tsx` — Composant d’interface partagé.
+- `src/components/ui/textarea.tsx` — Composant d’interface partagé.
+- `src/components/ui/toast.tsx` — Composant d’interface partagé.
+- `src/components/ui/toaster.tsx` — Composant d’interface partagé.
+- `src/components/ui/toggle-group.tsx` — Composant d’interface partagé.
+- `src/components/ui/toggle.tsx` — Composant d’interface partagé.
+- `src/components/ui/tooltip.tsx` — Composant d’interface partagé.
+- `src/hooks/use-mobile.tsx` — Hook React partagé.
+- `src/hooks/use-toast.ts` — Hook React partagé.
+- `src/hooks/useActivityTracker.ts` — Hook React partagé.
+- `src/hooks/useAITracking.ts` — Hook React partagé.
+- `src/hooks/usePageContext.ts` — Hook React partagé.
+- `src/hooks/useTheme.ts` — Hook React partagé.
+- `src/index.css` — Ressource ou configuration copiée depuis eduplatform.
+- `src/lib/api-client.ts` — Service, type, traduction ou utilitaire partagé.
+- `src/lib/backend-types.ts` — Service, type, traduction ou utilitaire partagé.
+- `src/lib/env.ts` — Service, type, traduction ou utilitaire partagé.
+- `src/lib/i18n.tsx` — Service, type, traduction ou utilitaire partagé.
+- `src/lib/mock-data.ts` — Service, type, traduction ou utilitaire partagé.
+- `src/lib/utils.ts` — Service, type, traduction ou utilitaire partagé.
+- `src/main.tsx` — Ressource ou configuration copiée depuis eduplatform.
+- `src/pages/AboutPage.tsx` — Page ou écran de l’application.
+- `src/pages/AdminPage.tsx` — Page ou écran de l’application.
+- `src/pages/AdminQuizStatsPage.tsx` — Page ou écran de l’application.
+- `src/pages/AdminUsersPage.tsx` — Page ou écran de l’application.
+- `src/pages/AICourseGenView.tsx` — Page ou écran de l’application.
+- `src/pages/AIHubPage.tsx` — Page ou écran de l’application.
+- `src/pages/AIWorkspacePage.tsx` — Page ou écran de l’application.
+- `src/pages/AnalyticsPage.tsx` — Page ou écran de l’application.
+- `src/pages/AuthPage.tsx` — Page ou écran de l’application.
+- `src/pages/CertificatesPage.tsx` — Page ou écran de l’application.
+- `src/pages/CourseDetail.tsx` — Page ou écran de l’application.
+- `src/pages/CoursesPage.tsx` — Page ou écran de l’application.
+- `src/pages/CourseWizardPage.tsx` — Page ou écran de l’application.
+- `src/pages/Dashboard.tsx` — Page ou écran de l’application.
+- `src/pages/DashboardHome.tsx` — Page ou écran de l’application.
+- `src/pages/DashboardLayout.tsx` — Page ou écran de l’application.
+- `src/pages/DocumentAIPage.tsx` — Page ou écran de l’application.
+- `src/pages/GoogleAuthSuccess.tsx` — Page ou écran de l’application.
+- `src/pages/GoogleCallbackPage.tsx` — Page ou écran de l’application.
+- `src/pages/LibraryPage.tsx` — Page ou écran de l’application.
+- `src/pages/not-found.tsx` — Page ou écran de l’application.
+- `src/pages/NotesPage.tsx` — Page ou écran de l’application.
+- `src/pages/NotificationsPage.tsx` — Page ou écran de l’application.
+- `src/pages/PublicQuestionnairePage.tsx` — Page ou écran de l’application.
+- `src/pages/QuestionnairePage.tsx` — Page ou écran de l’application.
+- `src/pages/QuizzesPage.tsx` — Page ou écran de l’application.
+- `src/pages/RevisionPage.tsx` — Page ou écran de l’application.
+- `src/pages/SettingsPage.tsx` — Page ou écran de l’application.
+- `src/vite-env.d.ts` — Ressource ou configuration copiée depuis eduplatform.
+- `tsconfig.json` — Ressource ou configuration copiée depuis eduplatform.
+- `vercel.json` — Ressource ou configuration copiée depuis eduplatform.
+- `vite.config.ts` — Ressource ou configuration copiée depuis eduplatform.
