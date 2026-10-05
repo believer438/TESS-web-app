@@ -1,4 +1,3 @@
-// Copie Zentrix Academy : src/components/ai/AttachmentCard.tsx
 import { Check, FileText, Image as ImageIcon, Loader2, X } from "lucide-react";
 
 export default function AttachmentCard({

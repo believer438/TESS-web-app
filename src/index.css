@@ -1,4 +1,4 @@
-/* Copie Zentrix Academy : src/index.css */
+/* TESS AI application styles. */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -61,6 +61,12 @@
 @media (max-width: 767px) {
   textarea { font-size: 16px !important; line-height: 1.5 !important; }
   .ai-activity, .ai-activity p, .ai-activity li { font-size: 0.875rem; line-height: 1.5; }
+}
+
+/* Appearance choices are shown in the attached panel, not the legacy inline row. */
+.preferences-panel > button[aria-expanded="true"]:has(svg.lucide-sun) + div,
+.preferences-panel > button[aria-expanded="true"]:has(svg.lucide-earth) + div {
+  display: none !important;
 }
 
 @theme inline {
@@ -205,35 +211,42 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Neutral charcoal system: the dark interface must not inherit a navy cast. */
-  --background: 0 0% 9%;
+  /* Neutral black scale: surfaces stay genuinely neutral, never navy or green.
+     The small lightness steps preserve hierarchy without making night mode
+     look like a single, overly-dark block. */
+  --dark-0: 0 0% 6%;
+  --dark-1: 0 0% 9%;
+  --dark-2: 0 0% 12%;
+  --dark-3: 0 0% 15%;
+  --dark-4: 0 0% 19%;
+  --background: var(--dark-1);
   --foreground: 0 0% 96%;
-  --border: 0 0% 22%;
-  --card: 0 0% 12%;
+  --border: var(--dark-4);
+  --card: var(--dark-2);
   --card-foreground: 0 0% 96%;
-  --card-border: 0 0% 22%;
-  --sidebar: 0 0% 8%;
+  --card-border: var(--dark-4);
+  --sidebar: var(--dark-0);
   --sidebar-foreground: 0 0% 96%;
-  --sidebar-border: 0 0% 17%;
+  --sidebar-border: var(--dark-3);
   --sidebar-primary: 221 83% 60%;
   --sidebar-primary-foreground: 0 0% 8%;
-  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent: var(--dark-3);
   --sidebar-accent-foreground: 0 0% 96%;
   --sidebar-ring: 221 83% 60%;
-  --popover: 0 0% 12%;
+  --popover: var(--dark-2);
   --popover-foreground: 0 0% 96%;
-  --popover-border: 0 0% 22%;
+  --popover-border: var(--dark-4);
   --primary: 221 83% 60%;
   --primary-foreground: 0 0% 8%;
-  --secondary: 0 0% 15%;
+  --secondary: var(--dark-3);
   --secondary-foreground: 0 0% 96%;
-  --muted: 0 0% 15%;
+  --muted: var(--dark-3);
   --muted-foreground: 0 0% 67%;
   --accent: 43 83% 58%;
   --accent-foreground: 0 0% 8%;
   --destructive: 4 62% 42%;
   --destructive-foreground: 0 0% 96%;
-  --input: 0 0% 22%;
+  --input: var(--dark-4);
   --ring: 221 83% 60%;
   --chart-1: 221 83% 60%;
   --chart-2: 43 83% 58%;
@@ -298,7 +311,7 @@
 }
 
 .dark body {
-  background-image: linear-gradient(135deg, #171717, #202020);
+  background-image: linear-gradient(135deg, hsl(var(--dark-1)), hsl(var(--dark-2)));
 }
 
 /* ── Global scrollbars ───────────────────────────────────────────────────────
@@ -363,6 +376,70 @@ html.dark *::-webkit-scrollbar-thumb:hover {
 .dark :is([class~="dark:bg-slate-600"]) { background-color: #404040 !important; }
 .dark :is([class~="border-slate-800"], [class~="dark:border-slate-800"]) { border-color: #303030 !important; }
 .dark :is([class~="border-slate-700"], [class~="dark:border-slate-700"]) { border-color: #3a3a3a !important; }
+
+/* Legacy dark utilities used by older pages.  Keep their visual hierarchy,
+   but remove the blue cast so every night-mode surface belongs to the same
+   neutral black scale as the design tokens above. */
+.dark :is(
+  [class~="dark:bg-[#0f1219]"],
+  [class~="dark:bg-[#111111]"],
+  [class~="dark:bg-[#111827]"],
+  [class~="dark:bg-[#131a25]"],
+  [class~="dark:bg-[#131b28]"],
+  [class~="dark:bg-[#151c28]"],
+  [class~="dark:bg-[#172033]"],
+  [class~="dark:bg-[#181818]"],
+  [class~="dark:bg-[#0b1424]"],
+  [class~="dark:bg-[#101722]"]
+) { background-color: hsl(var(--dark-1)) !important; }
+
+/* A few full-bleed legacy panels use a base colour instead of a dark:
+   variant. In dark mode they still need to join the neutral system. */
+.dark :is(
+  [class~="bg-[#0a0c15]"],
+  [class~="bg-[#0f0f1a]"],
+  [class~="bg-[#111827]"],
+  [class~="bg-[#161616]"]
+) { background-color: hsl(var(--dark-0)) !important; }
+
+.dark :is(
+  [class~="bg-blue-600\/30"],
+  [class~="bg-violet-600\/20"]
+) { background-color: rgb(255 255 255 / .04) !important; }
+
+.dark :is(
+  [class~="dark:bg-slate-950"],
+  [class~="dark:bg-slate-900"],
+  [class~="dark:bg-gray-900"],
+  [class~="dark:bg-zinc-900"]
+) { background-color: hsl(var(--dark-1)) !important; }
+
+.dark :is(
+  [class~="dark:bg-slate-800"],
+  [class~="dark:bg-gray-800"],
+  [class~="dark:bg-zinc-800"]
+) { background-color: hsl(var(--dark-3)) !important; }
+
+.dark :is(
+  [class~="dark:bg-slate-700"],
+  [class~="dark:bg-gray-700"],
+  [class~="dark:bg-zinc-700"]
+) { background-color: hsl(var(--dark-4)) !important; }
+
+/* Semi-transparent variants must stay neutral too; otherwise old slate
+   overlays become visibly blue on the charcoal page. */
+.dark :is(
+  [class*="dark:bg-slate-900/"],
+  [class*="dark:bg-slate-800/"],
+  [class*="dark:bg-gray-900/"],
+  [class*="dark:bg-zinc-900/"]
+) { background-color: hsl(var(--dark-1) / .78) !important; }
+
+.dark .ai-mobile-chat-shell,
+.dark .ai-mobile-chat-shell aside,
+.dark .ai-mobile-chat-shell section {
+  background-color: hsl(var(--dark-1));
+}
 
 /* Questionnaire workspace: the editor was originally built with fixed dark
    colours. Keep that design in dark mode and provide an equally intentional,
@@ -466,8 +543,7 @@ html:not(.dark) .questionnaire-admin :is(
 }
 
 /* TESS is a focused study studio: mineral paper, deep pine ink, and a small
-   persimmon signal. These tokens are scoped to the assistant so academic
-   dashboards keep their existing Zentrix language. */
+   persimmon signal. These tokens are scoped to the assistant. */
 .tess-workspace {
   --tess-paper: #f5f4ee;
   --tess-surface: #fcfbf7;
@@ -483,14 +559,14 @@ html:not(.dark) .questionnaire-admin :is(
 }
 
 .dark .tess-workspace {
-  --tess-paper: #171d1c;
-  --tess-surface: #202927;
-  --tess-ink: #e9efeb;
-  --tess-muted: #9aa9a3;
-  --tess-line: #394541;
+  --tess-paper: hsl(var(--dark-1));
+  --tess-surface: hsl(var(--dark-2));
+  --tess-ink: hsl(var(--foreground));
+  --tess-muted: hsl(var(--muted-foreground));
+  --tess-line: hsl(var(--border));
   --tess-accent: #e68a66;
-  --tess-accent-soft: #402d26;
-  --tess-mint: #293834;
+  --tess-accent-soft: hsl(var(--dark-3));
+  --tess-mint: hsl(var(--dark-3));
 }
 
 .tess-workspace .tess-display {
@@ -580,11 +656,11 @@ html:not(.dark) .questionnaire-admin :is(
 }
 
 .dark .tess-auth {
-  --tess-paper: #171d1c;
-  --tess-surface: #202927;
-  --tess-ink: #e9efeb;
-  --tess-muted: #9aa9a3;
-  --tess-line: #394541;
+  --tess-paper: hsl(var(--dark-1));
+  --tess-surface: hsl(var(--dark-2));
+  --tess-ink: hsl(var(--foreground));
+  --tess-muted: hsl(var(--muted-foreground));
+  --tess-line: hsl(var(--border));
   --tess-accent: #e68a66;
 }
 
@@ -914,12 +990,23 @@ html:not(.dark) .questionnaire-admin :is(
   animation: ai-activity-shimmer-sweep 2.2s ease-in-out infinite;
 }
 
+.ai-activity-light {
+  transform: translateX(-180%);
+  animation: ai-activity-light-sweep 1.35s ease-in-out infinite;
+}
+
+@keyframes ai-activity-light-sweep {
+  0% { transform: translateX(-180%); opacity: .25; }
+  55%, 100% { transform: translateX(300%); opacity: 1; }
+}
+
 .dark .ai-activity-shimmer {
   background-image: linear-gradient(100deg, #94a3b8 20%, #f8fafc 48%, #94a3b8 76%);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ai-activity-shimmer { animation: none; color: #475569; }
+  .ai-activity-light { animation: none; transform: translateX(0); opacity: .65; }
   .dark .ai-activity-shimmer { color: #cbd5e1; }
 }
 
@@ -935,6 +1022,20 @@ html:not(.dark) .questionnaire-admin :is(
    row below its glass controls without adding a visual background band. */
 .ai-mobile-chat-shell > div.flex-1 {
   padding-top: 96px;
+}
+
+/* Keep the conversation column exactly as wide as the composer. */
+.ai-mobile-chat-shell section {
+  box-sizing: border-box;
+  max-width: 760px !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* The standalone AI surface does not need the old learning promo card. */
+.ai-mobile-chat-shell aside > div.space-y-3 > div.relative,
+.ai-mobile-chat-shell aside > div.space-y-3 > button {
+  display: none;
 }
 
 /* Keep the questionnaire workspace on the same neutral dark palette as the

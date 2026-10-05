@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 
 export type ThemeMode = "light" | "dark" | "system";
 
-const STORAGE_KEY = "zentrix-theme";
+const STORAGE_KEY = "tess-ai-theme";
 
 function applyTheme(mode: ThemeMode): void {
   const root = document.documentElement;

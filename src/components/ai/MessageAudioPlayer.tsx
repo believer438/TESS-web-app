@@ -1,4 +1,3 @@
-// Copie Zentrix Academy : src/components/ai/MessageAudioPlayer.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Pause, Play, Volume2, X } from "lucide-react";
 

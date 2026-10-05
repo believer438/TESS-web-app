@@ -1,4 +1,3 @@
-// Copie Zentrix Academy : src/pages/GoogleCallbackPage.tsx
 import { useEffect } from "react";
 import { buildApiUrl } from "@/lib/env";
 import { markOAuthSession } from "@/lib/api-client";

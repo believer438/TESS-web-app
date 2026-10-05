@@ -1,4 +1,3 @@
-// Copie Zentrix Academy : src/pages/GoogleAuthSuccess.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiGetMe, clearAuth, clearOAuthSession, needsLearningProfile, setToken } from "@/lib/api-client";

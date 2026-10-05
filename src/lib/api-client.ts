@@ -1,5 +1,5 @@
-// Copie Zentrix Academy : src/lib/api-client.ts
-import { buildApiUrl } from "./env";
+// TESS API client.
+import { buildApiUrl, buildTessApiUrl } from "./env";
 import type { AIActivitySource, AIActivityStep, CatalogueCourse, BackendChapter } from "./backend-types";
 export type { CatalogueCourse, BackendChapter } from "./backend-types";
 
@@ -47,9 +47,9 @@ const apiFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<R
   }
 };
 
-const TOKEN_KEY = "zentrix-token";
-const SESSION_KEY = "zentrix-academy_session";
-const OAUTH_SESSION_KEY = "zentrix-oauth-session";
+const TOKEN_KEY = "tess-ai-token";
+const SESSION_KEY = "tess-ai-session";
+const OAUTH_SESSION_KEY = "tess-ai-oauth-session";
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -57,6 +57,7 @@ export function getToken(): string | null {
 export function setToken(token: string): void {
   clearReadCache();
   localStorage.setItem(TOKEN_KEY, token);
+  window.dispatchEvent(new Event("auth-state-changed"));
 }
 export function markOAuthSession(): void {
   clearReadCache();
@@ -65,14 +66,22 @@ export function markOAuthSession(): void {
 export function clearOAuthSession(): void {
   localStorage.removeItem(OAUTH_SESSION_KEY);
 }
-export function clearAuth(): void {
+export function clearAuth(options: { revokeRemote?: boolean } = {}): void {
   clearReadCache();
-  void apiFetch(buildApiUrl("/auth/logout"), { method: "POST" }).catch(
-    () => {},
-  );
+  const token = getToken();
+  // Revoke only from an explicit user logout while the token is still
+  // usable. A 401 handler must clear local state silently: sending an already
+  // invalid token to /logout only creates a second, misleading 401.
+  if (options.revokeRemote !== false && token && token !== "__cookie_session__") {
+    void apiFetch(buildTessApiUrl("/auth/logout"), {
+      method: "POST",
+      headers: { ...authHeaders() },
+    }).catch(() => {});
+  }
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(OAUTH_SESSION_KEY);
+  window.dispatchEvent(new Event("auth-state-changed"));
 }
 export function isAuthenticated(): boolean {
   return !!getToken() || localStorage.getItem(OAUTH_SESSION_KEY) === "1";
@@ -142,7 +151,7 @@ export function apiErrorMessage(
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Erreur réseau" }));
-    if (res.status === 401) clearAuth();
+    if (res.status === 401) clearAuth({ revokeRemote: false });
     const detail = (err as ApiError).detail;
     let message: string;
     if (typeof detail === "string") {
@@ -174,17 +183,27 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
+export interface AuthTokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+  session_id: string;
+  user_id: string;
+  device_id?: string | null;
+}
+
 export async function apiRegister(
   email: string,
   fullName: string,
   password: string,
-): Promise<{ message: string }> {
-  const res = await apiFetch(buildApiUrl("/auth/register"), {
+): Promise<AuthTokenResponse> {
+  const res = await apiFetch(buildTessApiUrl("/auth/register"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       email: email.trim().toLowerCase(),
-      full_name: fullName.trim(),
+      display_name: fullName.trim(),
       password,
     }),
   });
@@ -194,8 +213,8 @@ export async function apiRegister(
 export async function apiLogin(
   email: string,
   password: string,
-): Promise<{ access_token: string; token_type: string }> {
-  const res = await apiFetch(buildApiUrl("/auth/login"), {
+): Promise<AuthTokenResponse> {
+  const res = await apiFetch(buildTessApiUrl("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
@@ -238,7 +257,7 @@ export function needsLearningProfile(profile: Pick<UserProfile, "learning_profil
 }
 
 export async function apiGetMe(): Promise<UserProfile> {
-  const res = await apiFetch(buildApiUrl("/auth/me"), {
+  const res = await apiFetch(buildTessApiUrl("/auth/me"), {
     headers: { ...authHeaders() },
   });
   return handleResponse(res);
@@ -253,7 +272,7 @@ export async function apiUpdateMe(payload: {
   learning_profile?: LearningProfile;
   onboarding_completed?: boolean;
 }): Promise<UserProfile> {
-  const res = await apiFetch(buildApiUrl("/auth/me"), {
+  const res = await apiFetch(buildTessApiUrl("/auth/me"), {
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(payload),
@@ -262,7 +281,7 @@ export async function apiUpdateMe(payload: {
 }
 
 export function getGoogleLoginUrl(): string {
-  return buildApiUrl("/auth/google/login");
+  return buildTessApiUrl("/auth/google/login");
 }
 
 // ── Cours (personal documents for AI) ─────────────────────────────────────────
@@ -846,6 +865,37 @@ export async function apiGetAIPermissions(): Promise<AIPermissions> {
   return handleResponse(res);
 }
 
+export interface TessAgentCapability {
+  id: string;
+  name: string;
+  description: string;
+  status?: string;
+  permissions?: string[];
+  tools?: string[];
+}
+
+export interface TessToolCapability {
+  tool_id: string;
+  name: string;
+  description: string;
+  permissions?: string[];
+  agent_ids?: string[];
+  confirmation_required?: boolean;
+}
+
+/** Capabilities exposed by the permissioned TESS gateway, never guessed by the UI. */
+export async function apiTessListAgents(): Promise<TessAgentCapability[]> {
+  const response = await apiFetch(buildTessApiUrl("/agents"), { headers: { ...authHeaders() } });
+  if (!response.ok) throw new Error("Les agents TESS sont indisponibles.");
+  return handleResponse(response);
+}
+
+export async function apiTessListTools(): Promise<TessToolCapability[]> {
+  const response = await apiFetch(buildTessApiUrl("/tools"), { headers: { ...authHeaders() } });
+  if (!response.ok) throw new Error("Les outils TESS sont indisponibles.");
+  return handleResponse(response);
+}
+
 export async function apiUpdateAIPermissions(
   payload: Partial<AIPermissions>,
 ): Promise<AIPermissions> {
@@ -866,7 +916,7 @@ export interface PageContextData {
 export async function apiAIVoiceTranscribe(audio: Blob, signal?: AbortSignal, language?: "fr" | "en" | "sw"): Promise<string> {
   const form = new FormData();
   const extension = audio.type.includes("ogg") ? "ogg" : audio.type.includes("mp4") ? "m4a" : "webm";
-  form.append("audio", audio, `zentrix-voice.${extension}`);
+  form.append("audio", audio, `tess-ai-voice.${extension}`);
   form.append("language", language ?? (document.documentElement.lang === "sw" ? "sw" : document.documentElement.lang?.startsWith("en") ? "en" : "fr"));
   const response = await apiFetch(buildApiUrl("/ai/voice/transcribe"), {
     method: "POST", body: form, signal, headers: authHeaders(),
@@ -944,14 +994,24 @@ export async function* apiAIChatStream(
     courseId?: number;
     chapterId?: number;
     history?: { role: string; content: string }[];
-    mode?: "document" | "assistant" | "course";
-    conversationId?: number;
-    onConversationId?: (id: number) => void;
+      mode?: "document" | "assistant" | "course";
+      alertMode?: boolean;
+      confirmed?: boolean;
+    conversationId?: string;
+    onConversationId?: (id: string) => void;
     pageContext?: PageContextData | null;
     userContext?: {
       ia_level?: string;
       ia_language?: string;
       ia_proactive_hints?: boolean;
+      learning_profile?: {
+        goals: string[];
+        level: string;
+        interests: string[];
+        weekly_time: string;
+        preferred_style: string;
+        target_date?: string;
+      } | null;
     } | null;
     signal?: AbortSignal;
       image_base64?: string;
@@ -965,11 +1025,25 @@ export async function* apiAIChatStream(
     onSources?: (sources: AIActivitySource[]) => void;
   },
 ): AsyncGenerator<string> {
-  const res = await apiFetch(buildApiUrl("/ai/chat/stream"), {
+  // The TESS gateway is the authoritative chat contract. The legacy
+  // application route remains available only as an explicit compatibility
+  // fallback, so normal messages do not generate noisy 404s in the browser.
+  const useCanonicalGateway = true;
+  const res = await apiFetch(
+    useCanonicalGateway ? buildTessApiUrl("/chat/stream") : buildApiUrl("/ai/chat/stream"),
+    {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     signal: options?.signal ?? null,
-    body: JSON.stringify({
+    body: JSON.stringify(useCanonicalGateway ? {
+      message,
+      session_id: options?.conversationId || undefined,
+      mode: options?.mode || "assistant",
+      alert_mode: Boolean(options?.alertMode),
+      confirmed: Boolean(options?.confirmed),
+      analysis_mode: Boolean(options?.analysisMode),
+      long_thinking: Boolean(options?.longThinking),
+    } : {
       message,
       cours_id: options?.coursId ?? null,
       course_id: options?.courseId ?? null,
@@ -986,7 +1060,82 @@ export async function* apiAIChatStream(
       analysis_scope: options?.analysisScope ?? "section",
       voice_mode: options?.voiceMode ?? false,
     }),
-  });
+    },
+  );
+
+  // Keep the application-specific stream contract when available, but bridge
+  // a missing route to the canonical TESS gateway instead of showing a false
+  // AI outage.
+  if (!useCanonicalGateway && [404, 405, 502, 503, 504].includes(res.status)) {
+    // Bridge the legacy application route to the canonical TESS SSE gateway.
+    // This keeps the real streaming contract when the optional legacy route
+    // is absent, instead of downgrading to a JSON response or reporting a
+    // false temporary outage.
+    const tessResponse = await apiFetch(buildTessApiUrl("/chat/stream"), {
+      method: "POST",
+      headers: { "Accept": "text/event-stream", "Content-Type": "application/json", ...authHeaders() },
+      signal: options?.signal ?? null,
+      body: JSON.stringify({
+        message,
+        session_id: options?.conversationId || undefined,
+        mode: options?.mode || "assistant",
+        alert_mode: Boolean(options?.alertMode),
+        confirmed: Boolean(options?.confirmed),
+        analysis_mode: Boolean(options?.analysisMode),
+        long_thinking: Boolean(options?.longThinking),
+      }),
+    });
+    if (!tessResponse.ok) {
+      const err = await tessResponse.json().catch(() => ({ detail: "Erreur réseau" }));
+      if (tessResponse.status === 401) clearAuth();
+      const detail = (err as ApiError).detail;
+      throw new Error(
+        apiErrorMessage(
+          typeof detail === "string" ? detail : "Erreur IA TESS",
+          "Le service IA TESS est temporairement indisponible.",
+        ),
+      );
+    }
+    const reader = tessResponse.body?.getReader();
+    if (!reader) throw new Error("Le flux de réponse est indisponible.");
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let streamDone = false;
+    const consumeFallbackLine = (line: string) => {
+      if (!line.startsWith("data:")) return;
+      const payload = line.slice(5).trim();
+      if (!payload) return;
+      if (payload === "[DONE]") { streamDone = true; return; }
+      try {
+        const parsed = JSON.parse(payload) as {
+          type?: string;
+          delta?: string;
+          status?: string;
+          activity?: AIActivityStep;
+        };
+        if (parsed.type === "status" && parsed.status) options?.onStatus?.(parsed.status);
+        if (parsed.type === "activity" && parsed.activity) options?.onActivity?.(parsed.activity);
+        if (parsed.delta) fallbackDeltas.push(parsed.delta);
+      } catch {
+        // Ignore malformed keep-alive frames; the canonical route remains authoritative.
+      }
+    };
+    const fallbackDeltas: string[] = [];
+    while (!streamDone) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        consumeFallbackLine(line.trim());
+        while (fallbackDeltas.length) yield fallbackDeltas.shift()!;
+      }
+      if (done) break;
+    }
+    if (buffer.trim()) consumeFallbackLine(buffer.trim());
+    while (fallbackDeltas.length) yield fallbackDeltas.shift()!;
+    return;
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Erreur réseau" }));
@@ -1001,50 +1150,72 @@ export async function* apiAIChatStream(
   }
 
   const reader = res.body?.getReader();
-  if (!reader) return;
+  if (!reader) throw new Error("Le flux de réponse est indisponible.");
   const decoder = new TextDecoder();
   let buffer = "";
+  let sawDone = false;
   const dispatchSSE = (payload: string): { done: boolean; delta?: string } => {
-    if (payload === "[DONE]") return { done: true };
+    const normalized = payload.trim();
+    if (!normalized || normalized === ":keep-alive") return { done: false };
+    if (normalized === "[DONE]") return { done: true };
     try {
-      const parsed = JSON.parse(payload) as {
+      const parsed = JSON.parse(normalized) as {
         delta?: string;
-        conversation_id?: number;
+        conversation_id?: string | number;
+        session_id?: string;
         type?: string;
         status?: string;
         activity?: AIActivityStep;
         sources?: AIActivitySource[];
+        message?: string;
       };
-      if (parsed.type === "meta" && parsed.conversation_id && options?.onConversationId) options.onConversationId(parsed.conversation_id);
+      if (parsed.type === "error") {
+        throw new Error(parsed.message || "Le service IA a interrompu la réponse.");
+      }
+      if (parsed.type === "meta" && options?.onConversationId) {
+        const id = parsed.session_id ?? (parsed.conversation_id != null ? String(parsed.conversation_id) : undefined);
+        if (id) options.onConversationId(id);
+      }
       if (parsed.type === "status" && parsed.status) options?.onStatus?.(parsed.status);
       if (parsed.type === "activity" && parsed.activity) options?.onActivity?.(parsed.activity);
       if (parsed.type === "sources" && Array.isArray(parsed.sources)) options?.onSources?.(parsed.sources);
       return { done: false, delta: parsed.delta };
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message !== "Unexpected end of JSON input") throw error;
+      // A malformed/partial frame must not erase the text already received.
+      // The next complete frame (or the final decoder flush) can still finish it.
       return { done: false };
     }
   };
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (!line.startsWith("data:")) continue;
-      const event = dispatchSSE(line.slice(5).trim());
-      if (event.done) return;
-      if (event.delta) yield event.delta;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const rawLine of lines) {
+        const line = rawLine.replace(/\r$/, "");
+        if (!line.startsWith("data:")) continue;
+        const event = dispatchSSE(line.slice(5));
+        if (event.done) { sawDone = true; return; }
+        if (event.delta) yield event.delta;
+      }
+      if (done) break;
     }
+  } finally {
+    reader.releaseLock();
   }
 
   // Some proxies close after the final SSE payload without a terminating newline.
-  buffer += decoder.decode();
-  const finalFrame = buffer.trim();
-  if (finalFrame.startsWith("data:")) {
-    const event = dispatchSSE(finalFrame.slice(5).trim());
-    if (event.delta) yield event.delta;
+  if (!sawDone) {
+    buffer += decoder.decode();
+    const finalFrame = buffer.replace(/\r$/, "").trim();
+    if (finalFrame.startsWith("data:")) {
+      const event = dispatchSSE(finalFrame.slice(5));
+      if (event.done) sawDone = true;
+      if (event.delta) yield event.delta;
+    }
   }
 }
 
@@ -1144,7 +1315,7 @@ export async function apiGetAnalyticsProfile(): Promise<AnalyticsProfile> {
 // ── AI Conversations (historique persistant) ──────────────────────────────────
 
 export interface AIConversation {
-  id: number;
+  id: string;
   title?: string;
   matches?: string[];
   course_id?: number;
@@ -1155,7 +1326,7 @@ export interface AIConversation {
 }
 
 export interface AIMessage {
-  id: number;
+  id: string;
   role: "user" | "assistant" | "system";
   content: string;
   created_at: string;
@@ -1163,29 +1334,30 @@ export interface AIMessage {
 
 export async function apiGetConversations(search = ""): Promise<AIConversation[]> {
   const query = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
-  const res = await apiFetch(buildApiUrl(`/ai/conversations${query}`), {
+  const res = await apiFetch(buildTessApiUrl(`/conversations${query}`), {
     headers: { ...authHeaders() },
   });
   return handleResponse(res);
 }
 
 export async function apiGetConversationMessages(
-  conversationId: number,
-): Promise<{ conversation_id: number; messages: AIMessage[] }> {
+  conversationId: string,
+): Promise<{ conversation_id: string; messages: AIMessage[] }> {
   const res = await apiFetch(
-    buildApiUrl(`/ai/conversations/${conversationId}/messages`),
+    buildTessApiUrl(`/conversations/${encodeURIComponent(conversationId)}/messages`),
     {
       headers: { ...authHeaders() },
     },
   );
-  return handleResponse(res);
+  const messages = await handleResponse<AIMessage[]>(res);
+  return { conversation_id: conversationId, messages };
 }
 
 export async function apiDeleteConversation(
-  conversationId: number,
+  conversationId: string,
 ): Promise<{ status: string }> {
   const res = await apiFetch(
-    buildApiUrl(`/ai/conversations/${conversationId}`),
+    buildTessApiUrl(`/conversations/${encodeURIComponent(conversationId)}`),
     {
       method: "DELETE",
       headers: { ...authHeaders() },

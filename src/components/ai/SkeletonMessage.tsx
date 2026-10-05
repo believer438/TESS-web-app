@@ -1,4 +1,3 @@
-// Copie Zentrix Academy : src/components/ai/SkeletonMessage.tsx
 export default function SkeletonMessage() {
   return (
     <div className="w-full max-w-[min(100%,42rem)] animate-in fade-in duration-200 motion-reduce:animate-none" role="status" aria-label="Préparation de la réponse">

@@ -15,11 +15,12 @@ const basePath = process.env.BASE_PATH ?? '/';
 export default defineConfig(async ({ mode }) => {
   const env = loadEnv(mode, path.resolve(import.meta.dirname), '');
   const backend =
-    process.env.ZENTRIX_BACKEND_URL?.trim() ||
-    env.ZENTRIX_BACKEND_URL?.trim() ||
+    process.env.TESS_BACKEND_URL?.trim() ||
+    env.TESS_BACKEND_URL?.trim() ||
     'http://127.0.0.1:8000';
 
   const backendPaths = [
+    '/api/',
     '/auth/',
     '/cours/',
     '/courses/',
@@ -70,7 +71,16 @@ export default defineConfig(async ({ mode }) => {
     proxy: Object.fromEntries(
       backendPaths.map((route) => [
         route,
-        { target: backend, changeOrigin: true, secure: false },
+        {
+          target: backend,
+          changeOrigin: true,
+          secure: false,
+          // L'analyse LLM peut durer plusieurs dizaines de secondes. Le
+          // gateway SSE envoie des keep-alive, mais le proxy ne doit pas
+          // appliquer un délai court à une réponse encore active.
+          timeout: 120_000,
+          proxyTimeout: 120_000,
+        },
       ]),
     ),
     fs: {

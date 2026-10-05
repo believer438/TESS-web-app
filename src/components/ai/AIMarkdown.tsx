@@ -1,4 +1,3 @@
-// Copie Zentrix Academy : src/components/ai/AIMarkdown.tsx
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";

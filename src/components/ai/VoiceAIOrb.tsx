@@ -1,4 +1,3 @@
-// Copie Zentrix Academy : src/components/ai/VoiceAIOrb.tsx
 import { useEffect, useRef } from "react";
 
 export type VoiceOrbState = "idle" | "listening" | "processing" | "speaking" | "paused" | "error";
