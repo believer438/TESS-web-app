@@ -1042,13 +1042,10 @@ export async function* apiAIChatStream(
   // application route remains available only as an explicit compatibility
   // fallback, so normal messages do not generate noisy 404s in the browser.
   const useCanonicalGateway = true;
-  const res = await apiFetch(
-    useCanonicalGateway ? buildTessApiUrl("/chat/stream") : buildApiUrl("/ai/chat/stream"),
-    {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
-    signal: options?.signal ?? null,
-    body: JSON.stringify(useCanonicalGateway ? {
+  const chatUrl = useCanonicalGateway
+    ? buildTessApiUrl("/chat/stream")
+    : buildApiUrl("/ai/chat/stream");
+  const chatBody = JSON.stringify(useCanonicalGateway ? {
       message,
       session_id: options?.conversationId || undefined,
       mode: options?.mode || "assistant",
@@ -1072,9 +1069,33 @@ export async function* apiAIChatStream(
       analysis_mode: options?.analysisMode ?? false,
       analysis_scope: options?.analysisScope ?? "section",
       voice_mode: options?.voiceMode ?? false,
-    }),
-    },
-  );
+    });
+
+  // Vercel's external rewrite can briefly return a gateway error while the
+  // EC2 upstream is still reachable. Retry only those transient statuses so
+  // a short proxy blip does not become a false chat failure in the UI.
+  let res: Response;
+  for (let attempt = 0; ; attempt += 1) {
+    res = await apiFetch(chatUrl, {
+      method: "POST",
+      headers: {
+        Accept: "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
+      signal: options?.signal ?? null,
+      body: chatBody,
+    });
+    if (attempt >= 1 || ![502, 503, 504].includes(res.status)) break;
+    await new Promise<void>((resolve, reject) => {
+      const timer = window.setTimeout(resolve, 400);
+      options?.signal?.addEventListener("abort", () => {
+        window.clearTimeout(timer);
+        reject(new DOMException("La demande a été annulée.", "AbortError"));
+      }, { once: true });
+    });
+  }
 
   // Keep the application-specific stream contract when available, but bridge
   // a missing route to the canonical TESS gateway instead of showing a false
