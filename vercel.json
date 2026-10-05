@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://zentrix-backend-97at.onrender.com/$1"
+      "destination": "http://15.237.95.8:8000/api/$1"
     },
     {
       "source": "/(.*)",
