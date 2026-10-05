@@ -20,6 +20,7 @@ export default defineConfig(async ({ mode }) => {
     'http://127.0.0.1:8000';
 
   const backendPaths = [
+    '/api/v1/',
     '/api/',
     '/auth/',
     '/cours/',

@@ -86,6 +86,19 @@ export function clearAuth(options: { revokeRemote?: boolean } = {}): void {
 export function isAuthenticated(): boolean {
   return !!getToken() || localStorage.getItem(OAUTH_SESSION_KEY) === "1";
 }
+
+/** Session de conversation, conservée pour rattacher un chat invité après login. */
+export function getConversationSessionId(): string | null {
+  return localStorage.getItem(SESSION_KEY);
+}
+
+export function rememberConversationSessionId(sessionId: string): void {
+  if (sessionId.trim()) localStorage.setItem(SESSION_KEY, sessionId.trim());
+}
+
+export function clearConversationSessionId(): void {
+  localStorage.removeItem(SESSION_KEY);
+}
 function authHeaders(): Record<string, string> {
   const token = getToken();
   return token && token !== "__cookie_session__"

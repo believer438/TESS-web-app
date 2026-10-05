@@ -17,6 +17,9 @@ import {
   apiGetMe,
   apiErrorMessage,
   isAuthenticated,
+  getConversationSessionId,
+  rememberConversationSessionId,
+  clearConversationSessionId,
   apiAIVoiceTranscribe,
   apiAIVoiceSynthesizeStream,
   apiTessListAgents,
@@ -360,7 +363,7 @@ export default function AIPanelChat({
   const [analysisEnabled, setAnalysisEnabled] = useState(false);
   const [analysisScope,   setAnalysisScope]   = useState<"section" | "course">("section");
   const [streamingId,     setStreamingId]     = useState<string | null>(null);
-  const [conversationId,  setConversationId]  = useState<string | null>(null);
+  const [conversationId,  setConversationId]  = useState<string | null>(() => getConversationSessionId());
   const [conversationTitle, setConversationTitle] = useState("");
   const [attachedFile,    setAttachedFile]    = useState<AttachedFile | null>(null);
   const [attachmentError, setAttachmentError] = useState("");
@@ -458,6 +461,13 @@ export default function AIPanelChat({
 
   useEffect(() => {
     if (!isOpen) return;
+    // Le chat invité est public, mais le catalogue agents/outils est une
+    // surface de runtime protégée. Ne pas le charger sans session évite des
+    // 401 inutiles à chaque ouverture du composer ; le chat reste disponible.
+    if (!isAuthenticated()) {
+      setComposerResources([]);
+      return;
+    }
     let active = true;
     void Promise.allSettled([apiTessListAgents(), apiTessListTools()]).then(([agentsResult, toolsResult]) => {
       if (!active) return;
@@ -875,6 +885,7 @@ export default function AIPanelChat({
     setStarterPrompts(pickStarterPrompts());
     setDismissedStarterPrompts([]);
     setConversationId(null);
+    clearConversationSessionId();
     setConversationTitle("");
     setActivityByMessage({});
     setLongThinkingByMessage({});
@@ -1201,6 +1212,7 @@ export default function AIPanelChat({
         conversationId:   conversationId ?? undefined,
         onConversationId: (id) => {
           setConversationId(id);
+          rememberConversationSessionId(id);
           if (routeConversations) navigate(`${conversationRouteBase}/ai/${id}`, { replace: true, state: conversationRouteState });
         },
         pageContext:      pageCtx,
@@ -1754,7 +1766,7 @@ export default function AIPanelChat({
         conversationId: conversationId ?? undefined,
         alertMode: false,
         longThinking,
-        onConversationId: id => setConversationId(id),
+        onConversationId: id => { setConversationId(id); rememberConversationSessionId(id); },
       })) {
         greeting += delta;
       }
