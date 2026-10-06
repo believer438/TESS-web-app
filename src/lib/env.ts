@@ -16,12 +16,21 @@ export function buildApiUrl(path: string) {
 /** URL du Gateway T.E.S.S., sans double préfixe /api en production. */
 export function buildTessApiUrl(path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const routePath = normalizedPath.replace(/^\/api\/v1(?=\/|$)/i, "") || "/";
   const base = (
     import.meta.env.VITE_TESS_API_URL?.trim()
     || import.meta.env.VITE_TESS_API_BASE_URL?.trim()
   );
-  if (base) return `${base.replace(/\/$/, "")}${normalizedPath}`;
-  return `/api/v1${normalizedPath}`;
+  if (base) {
+    const normalizedBase = base.replace(/\/+$/, "");
+    const apiBase = /\/api\/v1$/i.test(normalizedBase)
+      ? normalizedBase
+      : /\/api$/i.test(normalizedBase)
+        ? `${normalizedBase}/v1`
+        : `${normalizedBase}/api/v1`;
+    return `${apiBase}${routePath}`;
+  }
+  return `/api/v1${routePath}`;
 }
 
 /** WebSocket TESS configuré par l'environnement de déploiement. */
