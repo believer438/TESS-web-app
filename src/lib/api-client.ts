@@ -79,7 +79,13 @@ export function clearAuth(options: { revokeRemote?: boolean } = {}): void {
     }).catch(() => {});
   }
   localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(SESSION_KEY);
+  // Keep a guest conversation session so a user can sign in and claim an
+  // already-open case. Authenticated conversation ids are user-owned and
+  // must not be replayed anonymously after the token disappears.
+  const conversationSession = localStorage.getItem(SESSION_KEY);
+  if (!conversationSession?.startsWith("guest_")) {
+    localStorage.removeItem(SESSION_KEY);
+  }
   localStorage.removeItem(OAUTH_SESSION_KEY);
   window.dispatchEvent(new Event("auth-state-changed"));
 }
@@ -1121,7 +1127,7 @@ export async function* apiAIChatStream(
     });
     if (!tessResponse.ok) {
       const err = await tessResponse.json().catch(() => ({ detail: "Erreur réseau" }));
-      if (tessResponse.status === 401) clearAuth();
+      if (tessResponse.status === 401) clearAuth({ revokeRemote: false });
       const detail = (err as ApiError).detail;
       throw new Error(
         apiErrorMessage(
@@ -1173,7 +1179,7 @@ export async function* apiAIChatStream(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Erreur réseau" }));
-    if (res.status === 401) clearAuth();
+    if (res.status === 401) clearAuth({ revokeRemote: false });
     const detail = (err as ApiError).detail;
     throw new Error(
       apiErrorMessage(
