@@ -21,7 +21,10 @@ export default function AIActivity({
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
 }) {
-  const visibleSteps = steps.filter(step => step.status !== "error" || step.detail);
+  // Pipeline phases (VERIFY, PLAN, ORCHESTRATE, etc.) are internal telemetry,
+  // not assistant messages. Keep failures visible, but never expose policy or
+  // authorization labels as if TESS were speaking to the user.
+  const visibleSteps = steps.filter(step => step.status === "error" && step.detail);
   const active = visibleSteps.find(step => step.status === "running")
     ?? visibleSteps.find(step => step.status === "planned");
   const lastStep = visibleSteps[visibleSteps.length - 1];
