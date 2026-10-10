@@ -61,6 +61,9 @@
 @media (max-width: 767px) {
   textarea { font-size: 16px !important; line-height: 1.5 !important; }
   .ai-activity, .ai-activity p, .ai-activity li { font-size: 0.875rem; line-height: 1.5; }
+  .ai-mobile-chat-shell aside[aria-label="Navigation TESS AI"] > div.relative.shrink-0.pt-3 > div.absolute {
+    max-width: 260px;
+  }
 }
 
 /* Appearance choices are shown in the attached panel, not the legacy inline row. */

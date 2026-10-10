@@ -212,8 +212,12 @@ export default function AIComposer({
   const [textareaHeight, setTextareaHeight] = useState(32);
   const [composerHeight, setComposerHeight] = useState(48);
   const [textareaOverflow, setTextareaOverflow] = useState<"hidden" | "auto">("hidden");
-  const [animatedPlaceholder, setAnimatedPlaceholder] = useState(placeholder);
-  const animatePlaceholder = value.length === 0 && !placeholder.toLocaleLowerCase().includes("fichier");
+  const [randomPlaceholder] = useState(() =>
+    ROTATING_PLACEHOLDERS[Math.floor(Math.random() * ROTATING_PLACEHOLDERS.length)],
+  );
+  const displayPlaceholder = placeholder.toLocaleLowerCase().includes("fichier")
+    ? placeholder
+    : randomPlaceholder;
   const normalized = useMemo(() => normalizeMessage(value), [value]);
   const hasDraft = normalized.length > 0 || interactionActive;
   const audioButton = !hasDraft && !isStreaming;
@@ -237,49 +241,19 @@ export default function AIComposer({
     message => { setAudioError(message); onAudioError?.(message); },
   );
 
-  useEffect(() => {
-    if (!animatePlaceholder) {
-      setAnimatedPlaceholder(placeholder);
-      return;
-    }
-
-    let phraseIndex = 0;
-    let characterIndex = 0;
-    let deleting = false;
-    let timer = 0;
-    const animateNextCharacter = () => {
-      const phrase = ROTATING_PLACEHOLDERS[phraseIndex];
-      characterIndex += deleting ? -1 : 1;
-      setAnimatedPlaceholder(phrase.slice(0, characterIndex));
-
-      let delay = deleting ? 24 : 42;
-      if (!deleting && characterIndex === phrase.length) {
-        deleting = true;
-        delay = 1250;
-      } else if (deleting && characterIndex === 0) {
-        deleting = false;
-        phraseIndex = (phraseIndex + 1) % ROTATING_PLACEHOLDERS.length;
-        delay = 240;
-      }
-      timer = window.setTimeout(animateNextCharacter, delay);
-    };
-
-    setAnimatedPlaceholder("");
-    timer = window.setTimeout(animateNextCharacter, 90);
-    return () => window.clearTimeout(timer);
-  }, [animatePlaceholder, placeholder]);
-
   const measureTextarea = useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     textarea.style.height = "auto";
     const maxHeight = 168;
-    const nextHeight = Math.min(maxHeight, Math.max(32, textarea.scrollHeight));
+    const isEmpty = normalized.length === 0;
+    const nextHeight = isEmpty ? 32 : Math.min(maxHeight, Math.max(32, textarea.scrollHeight));
     textarea.style.height = `${nextHeight}px`;
     setTextareaHeight(nextHeight);
-    setComposerHeight(Math.max(48, nextHeight + 10 + (nextHeight > 32 ? 48 : 0)));
-    setTextareaOverflow(textarea.scrollHeight > maxHeight ? "auto" : "hidden");
-  }, [textareaRef]);
+    const hasActionRow = nextHeight > 32 || mode !== "normal";
+    setComposerHeight(Math.max(48, nextHeight + 10 + (hasActionRow ? 48 : 0)));
+    setTextareaOverflow(!isEmpty && textarea.scrollHeight > maxHeight ? "auto" : "hidden");
+  }, [mode, normalized, textareaRef]);
 
   useLayoutEffect(() => {
     measureTextarea();
@@ -380,11 +354,11 @@ export default function AIComposer({
     </div>}
     <div style={{ width: audioButton ? "calc(100% - 52px)" : "100%", height: `${composerHeight}px` }} className={`relative flex min-h-[48px] min-w-0 items-center gap-1.5 rounded-[18px] border px-2 shadow-sm transition-[width,height,border-radius] duration-200 ease-out dark:bg-[#202020] dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)] ${alertMode ? "border-red-300 bg-red-50/40 dark:border-red-500/50" : "border-slate-200 bg-white dark:border-[#383838]"} ${audioButton ? "pr-2" : "pr-14"}`}>
       {prefixActions}
-      <div className="absolute right-1 top-2" style={{ left: `${textareaStart}px` }}>
-        <textarea ref={textareaRef} rows={1} value={value} onChange={event => onChange(event.target.value)} onKeyDown={handleKeyDown} placeholder={animatedPlaceholder || "Posez une question…"} disabled={disabled || isStreaming} aria-label="Message à T.E.S.S." style={{ height: `${textareaHeight}px`, overflowY: textareaOverflow, paddingRight: "7rem", scrollbarGutter: "stable" }} className="block max-h-[168px] min-h-8 w-full resize-none overflow-x-hidden bg-transparent py-1 pr-28 text-[15px] leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:outline-none disabled:opacity-50 dark:text-white dark:placeholder:text-white/55" />
+      <div className="absolute right-1 top-2" style={{ left: `${textareaStart}px`, bottom: `${textareaHeight > 32 || mode !== "normal" ? 48 : 8}px` }}>
+        <textarea ref={textareaRef} rows={1} value={value} onChange={event => onChange(event.target.value)} onKeyDown={handleKeyDown} placeholder={displayPlaceholder} disabled={disabled} aria-label="Message à T.E.S.S." style={{ height: `${textareaHeight}px`, overflowY: textareaOverflow, scrollbarGutter: "stable" }} className={`block max-h-[168px] min-h-8 w-full resize-none overflow-x-hidden bg-transparent py-1 text-[15px] leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:outline-none disabled:opacity-50 dark:text-white dark:placeholder:text-white/55 ${mode !== "normal" ? "pr-2" : "pr-28"}`} />
       </div>
       {mode !== "normal" && <div ref={modeMenuRef} className="relative mb-2 ml-auto inline-flex shrink-0 self-end items-center gap-1">
-        <HoverTooltip label={`${activeMode.label} · ${activeMode.description}`}><button type="button" aria-label={`Mode actif : ${activeMode.label}. Choisir un mode`} aria-haspopup="menu" aria-expanded={modeMenuOpen} onClick={() => setModeMenuOpen(open => !open)} className="inline-flex h-8 max-w-[min(10rem,38vw)] items-center justify-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2 text-blue-800 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-400/25 dark:bg-blue-400/10 dark:text-blue-200 dark:hover:bg-blue-400/15"><activeMode.icon className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-300" /><span className={`${textareaHeight > 32 ? "inline" : "hidden"} md:inline truncate text-[10px] font-semibold`}>{activeMode.label}</span><ChevronDown className={`h-3 w-3 shrink-0 text-blue-500 transition-transform ${modeMenuOpen ? "rotate-180" : ""}`} /></button></HoverTooltip>
+        <HoverTooltip label={`${activeMode.label} · ${activeMode.description}`}><button type="button" aria-label={`Mode actif : ${activeMode.label}. Choisir un mode`} aria-haspopup="menu" aria-expanded={modeMenuOpen} onClick={() => setModeMenuOpen(open => !open)} className="inline-flex h-8 max-w-[min(10rem,38vw)] items-center justify-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2 text-blue-800 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-400/25 dark:bg-blue-400/10 dark:text-blue-200 dark:hover:bg-blue-400/15"><activeMode.icon className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-300" /><span className="hidden truncate text-[10px] font-semibold md:inline">{activeMode.label}</span><ChevronDown className={`h-3 w-3 shrink-0 text-blue-500 transition-transform ${modeMenuOpen ? "rotate-180" : ""}`} /></button></HoverTooltip>
         {modeMenuOpen && createPortal(<div ref={modeMenuPanelRef} role="menu" aria-label="Choisir le mode de réponse" style={modeMenuPosition ? { position: "fixed", top: modeMenuPosition.top, left: modeMenuPosition.left, width: modeMenuPosition.width, maxHeight: modeMenuPosition.maxHeight } : { position: "fixed", top: -10000, left: 8, width: Math.max(1, Math.min(240, window.innerWidth - 16)), maxHeight: 1, visibility: "hidden" }} className="z-[160] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800 shadow-xl dark:border-white/15 dark:bg-[#242424] dark:text-white">
           {MODE_ITEMS.map(item => {
             const Icon = item.icon;

@@ -438,6 +438,7 @@ export default function AIPanelChat({
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
   const optionsPanelRef = useRef<HTMLDivElement>(null);
+  const preferencesPanelRef = useRef<HTMLDivElement>(null);
   const searchPanelRef = useRef<HTMLDivElement>(null);
   const composerAudioUrlsRef = useRef<string[]>([]);
 
@@ -496,6 +497,30 @@ export default function AIPanelChat({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [optionsOpen]);
+
+  useEffect(() => {
+    if (!preferencesOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !preferencesPanelRef.current?.contains(event.target)) {
+        setPreferencesOpen(false);
+        setLanguageSettingsOpen(false);
+        setAppearanceOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreferencesOpen(false);
+        setLanguageSettingsOpen(false);
+        setAppearanceOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [preferencesOpen]);
 
   useEffect(() => {
     if (!workspaceHubOpen) return;
@@ -2138,7 +2163,7 @@ export default function AIPanelChat({
                 <p className="rounded-xl bg-slate-50 px-3 py-3 text-xs text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">Aucune conversation enregistrée ici pour le moment.</p>
               )}
             </div>
-            <div className="relative shrink-0 px-2.5 pb-2 pt-2">
+            <div ref={preferencesPanelRef} className="relative shrink-0 px-2.5 pb-2 pt-2">
                 <button type="button" aria-expanded={preferencesOpen} onClick={() => { setPreferencesOpen(value => !value); setLanguageSettingsOpen(false); setAppearanceOpen(false); }} className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-white dark:hover:bg-white/10"><span>Préférences</span><ChevronRight className={`h-4 w-4 transition-transform ${preferencesOpen ? "rotate-90" : ""}`} /></button>
                 {preferencesOpen && <div className="preferences-panel absolute bottom-[calc(100%-0.5rem)] left-0 z-[95] w-[min(260px,calc(100vw-32px))] rounded-2xl border border-slate-200 bg-white p-2.5 text-slate-800 shadow-2xl shadow-slate-950/20 dark:border-[#3a3a3a] dark:bg-[#202020] dark:text-white md:fixed md:bottom-4 md:left-[18rem] md:ml-2">
                   <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-white/60">Préférences</p>
